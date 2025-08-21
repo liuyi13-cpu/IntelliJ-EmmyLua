@@ -1,3 +1,14 @@
+## 自定义改动
+2025.8.21
+- 新增build.bat直接编译脚本
+- 去掉gen目录
+- 自定义代码添加注释 // START Modify by XXX // END Modify by XXX
+
+- kg_require
+- slua import() 
+- 多继承
+
+
 ![logo](/snapshot/logo.png)
 # EmmyLua for IntelliJ IDEA
 

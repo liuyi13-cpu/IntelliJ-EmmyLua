@@ -190,26 +190,13 @@ project(":") {
     task("bunch") {
         doLast {
             val rev = getRev()
-            // reset
-            exec {
-                executable = "git"
-                args("reset", "HEAD", "--hard")
-            }
-            // clean untracked files
-            exec {
-                executable = "git"
-                args("clean", "-d", "-f")
-            }
+            // START Modify by liuyi
             // switch
             exec {
                 executable = if (isWin) "bunch/bin/bunch.bat" else "bunch/bin/bunch"
                 args("switch", ".", buildVersionData.bunch)
             }
-            // reset to HEAD
-            exec {
-                executable = "git"
-                args("reset", rev)
-            }
+            // END Modify by liuyi
         }
     }
 
