@@ -1,9 +1,9 @@
-## 自定义改动
+# 自定义改动
 2025.8.21
 - 新增build.bat直接编译脚本
-- 去掉gen目录
+- 去掉打包时的git操作
 - 自定义代码添加注释 // START Modify by XXX // END Modify by XXX
-
+## 新增功能
 - kg_require
 - slua import() 
 - 多继承

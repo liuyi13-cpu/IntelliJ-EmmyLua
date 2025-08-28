@@ -190,13 +190,13 @@ project(":") {
     task("bunch") {
         doLast {
             val rev = getRev()
-            // START Modify by liuyi
+            // START Modify by liuyi 去掉git操作
             // switch
             exec {
                 executable = if (isWin) "bunch/bin/bunch.bat" else "bunch/bin/bunch"
                 args("switch", ".", buildVersionData.bunch)
             }
-            // END Modify by liuyi
+            // END Modify by liuyi 去掉git操作
         }
     }
 
