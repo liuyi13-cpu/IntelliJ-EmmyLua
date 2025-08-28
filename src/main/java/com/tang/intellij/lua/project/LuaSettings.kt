@@ -61,6 +61,10 @@ class LuaSettings : PersistentStateComponent<LuaSettings> {
      */
     var enableGeneric: Boolean = false
 
+    // START Modify by liuyi
+    var enableStringIntelliSense: Boolean = true
+    // END Modify by liuyi
+
     /**
      * (KB)
      */
@@ -115,5 +119,15 @@ class LuaSettings : PersistentStateComponent<LuaSettings> {
         fun isRequireLikeFunctionName(name: String): Boolean {
             return instance.requireLikeFunctionNames.contains(name) || name == Constants.WORD_REQUIRE
         }
+
+        // START Modify by liuyi
+        fun isKGRequireLikeFunctionName(name: String): Boolean {
+            return name == Constants.WORD_KG_REQUIRE
+        }
+
+        fun isImportLikeFunctionName(name: String): Boolean {
+            return name == Constants.WORD_IMPORT;
+        }
+        // END Modify by liuyi
     }
 }

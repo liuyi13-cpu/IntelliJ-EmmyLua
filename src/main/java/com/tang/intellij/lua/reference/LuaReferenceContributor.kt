@@ -21,6 +21,11 @@ import com.intellij.psi.*
 import com.intellij.util.ProcessingContext
 import com.tang.intellij.lua.project.LuaSettings
 import com.tang.intellij.lua.psi.*
+// START Modify by liuyi
+import com.tang.intellij.lua.lang.type.LuaString
+import com.tang.intellij.lua.psi.impl.LuaListArgsImpl
+import com.tang.intellij.lua.psi.impl.LuaTableFieldImpl
+// END Modify by liuyi
 
 /**
  * reference contributor
@@ -33,6 +38,11 @@ class LuaReferenceContributor : PsiReferenceContributor() {
         psiReferenceRegistrar.registerReferenceProvider(psiElement().withElementType(LuaTypes.NAME_EXPR), NameReferenceProvider())
         psiReferenceRegistrar.registerReferenceProvider(psiElement().withElementType(LuaTypes.GOTO_STAT), GotoReferenceProvider())
         psiReferenceRegistrar.registerReferenceProvider(psiElement().withElementType(LuaTypes.FUNC_DEF), FuncReferenceProvider())
+        // START Modify by liuyi
+        if(LuaSettings.instance.enableStringIntelliSense){
+            psiReferenceRegistrar.registerReferenceProvider(psiElement().withElementType(LuaTypes.LITERAL_EXPR), LuaStringReferenceProvider())
+        }
+        // END Modify by liuyi
     }
 
     internal inner class FuncReferenceProvider : PsiReferenceProvider() {
@@ -61,9 +71,17 @@ class LuaReferenceContributor : PsiReferenceContributor() {
             val expr = psiElement as LuaCallExpr
             val nameRef = expr.expr
             if (nameRef is LuaNameExpr) {
-                if (LuaSettings.isRequireLikeFunctionName(nameRef.getText())) {
+                // START Modify by liuyi
+                /// if (LuaSettings.isRequireLikeFunctionName(nameRef.getText())) {
+                if (LuaSettings.isRequireLikeFunctionName(nameRef.getText()) || LuaSettings.isKGRequireLikeFunctionName(nameRef.getText())) {
+                // END Modify by liuyi
                     return arrayOf(LuaRequireReference(expr))
                 }
+                // START Modify by liuyi
+                else if(LuaSettings.isImportLikeFunctionName(nameRef.getText())){
+                    return arrayOf(LuaImportReference(expr))
+                }
+                // END Modify by liuyi
             }
             return PsiReference.EMPTY_ARRAY
         }
@@ -89,4 +107,25 @@ class LuaReferenceContributor : PsiReferenceContributor() {
             return arrayOf(LuaNameReference(psiElement as LuaNameExpr))
         }
     }
+    // START Modify by liuyi
+    internal inner class LuaStringReferenceProvider : PsiReferenceProvider() {
+        override fun getReferencesByElement(psiElement: PsiElement, processingContext: ProcessingContext): Array<PsiReference> {
+            val literalExpr = psiElement as LuaLiteralExpr
+            if(literalExpr.parent is LuaTableFieldImpl){
+                return arrayOf(LuaStringReference(psiElement))
+            }
+            else if(literalExpr.parent is LuaListArgsImpl) {
+                val expr = literalExpr.parent.parent as LuaCallExpr
+                val nameRef = expr.expr
+                if (nameRef is LuaNameExpr && (LuaSettings.isRequireLikeFunctionName(nameRef.getText())
+                            || LuaSettings.isKGRequireLikeFunctionName(nameRef.getText())
+                            || LuaSettings.isImportLikeFunctionName(nameRef.getText()))) {
+                    return PsiReference.EMPTY_ARRAY
+                }
+                return arrayOf(LuaStringReference(psiElement))
+            }
+            return PsiReference.EMPTY_ARRAY
+        }
+    }
+    // END Modify by liuyi
 }

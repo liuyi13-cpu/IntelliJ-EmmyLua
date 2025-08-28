@@ -50,12 +50,23 @@ class LuaCompletionContributor : CompletionContributor() {
 
         extend(CompletionType.BASIC, SHOW_REQUIRE_PATH, RequirePathCompletionProvider())
 
+        // START Modify by liuyi
+        extend(CompletionType.BASIC, SHOW_IMPORT_CLASS, ImportClassCompletionProvider())
+        // END Modify by liuyi
+
         extend(CompletionType.BASIC, LuaStringArgHistoryProvider.STRING_ARG, LuaStringArgHistoryProvider())
 
         //提示全局函数,local变量,local函数
         extend(CompletionType.BASIC, IN_NAME_EXPR, LocalAndGlobalCompletionProvider(LocalAndGlobalCompletionProvider.ALL))
 
         extend(CompletionType.BASIC, IN_CLASS_METHOD_NAME, LocalAndGlobalCompletionProvider(LocalAndGlobalCompletionProvider.VARS))
+
+        // START Modify by liuyi
+        if(LuaSettings.instance.enableStringIntelliSense){
+            //string输入补全,local变量,全局变量,成员变量
+            extend(CompletionType.BASIC, IN_NAME_STRING, StringCompletionProvider())
+        }
+        // END Modify by liuyi
 
         extend(CompletionType.BASIC, GOTO, object : CompletionProvider<CompletionParameters>(){
             override fun addCompletions(parameters: CompletionParameters, context: ProcessingContext, resultSet: CompletionResultSet) {
@@ -122,6 +133,17 @@ class LuaCompletionContributor : CompletionContributor() {
         private val IN_NAME_EXPR = psiElement(LuaTypes.ID)
                 .withParent(LuaNameExpr::class.java)
 
+        // START Modify by liuyi
+        private val IN_NAME_STRING = psiElement().andOr(psiElement(LuaTypes.STRING).withParent(psiElement(LuaLiteralExpr::class.java).withParent(LuaTableField::class.java)),
+            psiElement(LuaTypes.STRING).withParent(
+                psiElement(LuaTypes.LITERAL_EXPR).withParent(
+                    psiElement(LuaArgs::class.java).afterSibling(
+                        psiElement().with(StringCompletionIgnoreCondition())
+                    )
+                )
+            ))
+        // END Modify by liuyi
+
         private val SHOW_OVERRIDE = psiElement()
                 .withParent(LuaClassMethodName::class.java)
         private val IN_CLASS_METHOD = psiElement(LuaTypes.ID)
@@ -135,6 +157,17 @@ class LuaCompletionContributor : CompletionContributor() {
                                 )
                         )
                 )
+
+        // START Modify by liuyi
+        private val SHOW_IMPORT_CLASS = psiElement(LuaTypes.STRING)
+            .withParent(
+                psiElement(LuaTypes.LITERAL_EXPR).withParent(
+                    psiElement(LuaArgs::class.java).afterSibling(
+                        psiElement().with(ImportLikePatternCondition())
+                    )
+                )
+            )
+        // END Modify by liuyi
 
         private val GOTO = psiElement(LuaTypes.ID).withParent(LuaGotoStat::class.java)
 
@@ -168,9 +201,30 @@ class LuaCompletionContributor : CompletionContributor() {
     }
 }
 
+// START Modify by liuyi
+class StringCompletionIgnoreCondition : PatternCondition<PsiElement>("stringLike"){
+    override fun accepts(psi: PsiElement, context: ProcessingContext?): Boolean {
+        val name = (psi as? PsiNamedElement)?.name
+        return !(name == null || LuaSettings.isRequireLikeFunctionName(name) || LuaSettings.isKGRequireLikeFunctionName(name) || LuaSettings.isImportLikeFunctionName(name));
+    }
+}
+// END Modify by liuyi
+
 class RequireLikePatternCondition : PatternCondition<PsiElement>("requireLike"){
     override fun accepts(psi: PsiElement, context: ProcessingContext?): Boolean {
         val name = (psi as? PsiNamedElement)?.name
-        return if (name != null) LuaSettings.isRequireLikeFunctionName(name) else false
+        // START Modify by liuyi
+        /// return if (name != null) LuaSettings.isRequireLikeFunctionName(name) else false
+        return if (name != null) (LuaSettings.isRequireLikeFunctionName(name) || LuaSettings.isKGRequireLikeFunctionName(name)) else false
+        // END Modify by liuyi
     }
 }
+
+// START Modify by liuyi
+class ImportLikePatternCondition : PatternCondition<PsiElement>("importLike"){
+    override fun accepts(psi: PsiElement, context: ProcessingContext?): Boolean {
+        val name = (psi as? PsiNamedElement)?.name
+        return if (name != null) LuaSettings.isImportLikeFunctionName(name) else false
+    }
+}
+// END Modify by liuyi

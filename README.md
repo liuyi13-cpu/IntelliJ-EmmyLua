@@ -4,9 +4,10 @@
 - 去掉打包时的git操作
 - 自定义代码添加注释 // START Modify by XXX // END Modify by XXX
 ## 新增功能
-- kg_require
-- slua import() 
+- 自定义require函数
+- slua import() 反射
 - 多继承
+- 字符串函数跳转
 
 
 ![logo](/snapshot/logo.png)

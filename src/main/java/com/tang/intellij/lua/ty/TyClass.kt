@@ -253,6 +253,32 @@ class TyPsiDocClass(tagClass: LuaDocTagClass) : TyClass(tagClass.name) {
     override fun doLazyInit(searchContext: SearchContext) {}
 }
 
+// START Modify by liuyi
+open class TyModuleClass(name: String,
+                         varName: String = name,
+                         supper: String? = null,
+                         private val members: MutableList<LuaClassMember>)
+    : TyClass(name,varName,supper){
+    init {
+        this.flags = TyFlags.ANONYMOUS or TyFlags.ANONYMOUS_TABLE
+    }
+    override fun toString(): String = displayName
+
+    override fun doLazyInit(searchContext: SearchContext) = Unit
+    override fun processMembers(context: SearchContext, processor: (ITyClass, LuaClassMember) -> Unit, deep: Boolean) {
+        for (member in members) {
+            processor(this, member)
+        }
+    }
+    override fun findMember(name: String, searchContext: SearchContext): LuaClassMember? {
+        val member = members.find {
+            it.name == name
+        }
+        return member
+    }
+}
+// END Modify by liuyi
+
 open class TySerializedClass(name: String,
                              varName: String = name,
                              supper: String? = null,

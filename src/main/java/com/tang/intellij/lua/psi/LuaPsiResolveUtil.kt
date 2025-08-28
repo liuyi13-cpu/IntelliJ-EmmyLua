@@ -34,6 +34,16 @@ fun resolveLocal(refName:String, ref: PsiElement, context: SearchContext? = null
 
 fun resolveInFile(refName:String, pin: PsiElement, context: SearchContext?): PsiElement? {
     var ret: PsiElement? = null
+    // START Modify by liuyi
+    val types = PsiTreeUtil.getChildrenOfTypeAsList(pin.containingFile, LuaDeclaration::class.java)
+    for (type in types){
+        LuaDeclarationTree.get(pin.containingFile).walkUp(type) { decl ->
+            if (decl.name == refName)
+                ret = decl.firstDeclaration.psi
+            ret == null
+        }
+    }
+    // END Modify by liuyi
     LuaDeclarationTree.get(pin.containingFile).walkUp(pin) { decl ->
         if (decl.name == refName)
             ret = decl.firstDeclaration.psi
@@ -189,3 +199,23 @@ fun resolveRequireFile(pathString: String?, project: Project): LuaPsiFile? {
     }
     return null
 }
+
+// START Modify by liuyi
+//fun resolveImportClass(className: String?, context: SearchContext): LuaTypeGuessable? {
+//    if (className == null)
+//        return null
+//    var resolveResult: LuaTypeGuessable? = null
+//    val moduleName = Constants.WORD_G
+//    LuaShortNamesManager.getInstance(context.project).processMembers(moduleName, className, context, {
+//        resolveResult = it
+//        false
+//    })
+//    return resolveResult
+//}
+fun resolveImportClass(className: String?, context: SearchContext): LuaClass? {
+    if (className.isNullOrEmpty())
+        return null
+    val resolveResult = LuaShortNamesManager.getInstance(context.project).findClass(className,context)
+    return resolveResult
+}
+// END Modify by liuyi

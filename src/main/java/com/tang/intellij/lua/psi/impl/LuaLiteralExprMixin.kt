@@ -29,6 +29,9 @@ import com.tang.intellij.lua.psi.LuaLiteralKind
 import com.tang.intellij.lua.psi.kind
 import com.tang.intellij.lua.stubs.LuaLiteralExprStub
 import java.lang.StringBuilder
+// START Modify by liuyi
+import com.intellij.psi.PsiReference
+// END Modify by liuyi
 
 internal class TextEscaper(host: LuaLiteralExprMixin) : LiteralTextEscaper<LuaLiteralExprMixin>(host) {
     override fun isOneLine(): Boolean {
@@ -75,4 +78,9 @@ abstract class LuaLiteralExprMixin
         }
         return false
     }
+    // START Modify by liuyi
+    override fun getReference(): PsiReference? {
+        return references.firstOrNull()
+    }
+    // START Modify by liuyi
 }

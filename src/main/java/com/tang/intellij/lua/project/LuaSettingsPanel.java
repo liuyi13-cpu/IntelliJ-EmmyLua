@@ -17,7 +17,12 @@
 package com.tang.intellij.lua.project;
 
 import com.intellij.codeInsight.daemon.DaemonCodeAnalyzer;
-import com.intellij.openapi.options.Configurable;
+// START Modify by liuyi
+/// import com.intellij.openapi.options.Configurable;
+import com.intellij.ide.DataManager;
+import com.intellij.openapi.actionSystem.DataContext;
+import com.intellij.openapi.actionSystem.PlatformDataKeys;
+// END Modify by liuyi
 import com.intellij.openapi.options.SearchableConfigurable;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
@@ -41,8 +46,13 @@ import java.util.SortedMap;
 /**
  * Created by tangzx on 2017/6/12.
  */
-public class LuaSettingsPanel implements SearchableConfigurable, Configurable.NoScroll {
+
+// START Modify by liuyi
+/// public class LuaSettingsPanel implements SearchableConfigurable, Configurable.NoScroll {
+public class LuaSettingsPanel implements SearchableConfigurable {
+// END Modify by liuyi
     private final LuaSettings settings;
+    private LuaProjectSettings projectSettings;
     private JPanel myPanel;
     private JTextField constructorNames;
     private JCheckBox strictDoc;
@@ -52,6 +62,9 @@ public class LuaSettingsPanel implements SearchableConfigurable, Configurable.No
     private JCheckBox nilStrict;
     private JCheckBox recognizeGlobalNameAsCheckBox;
     private LuaAdditionalSourcesRootPanel additionalRoots;
+    // START Modify by liuyi
+    private LuaSourcesRootPanel sourceRoots;
+    // END Modify by liuyi
     private JCheckBox enableGenericCheckBox;
     private JCheckBox captureOutputDebugString;
     private JCheckBox captureStd;
@@ -59,8 +72,22 @@ public class LuaSettingsPanel implements SearchableConfigurable, Configurable.No
     private JComboBox<LuaLanguageLevel> languageLevel;
     private JTextField requireFunctionNames;
     private JTextField tooLargerFileThreshold;
+    // START Modify by liuyi
+    private JCheckBox enableStringIntelliSense;
+    // END Modify by liuyi
 
     public LuaSettingsPanel() {
+        // START Modify by liuyi
+        DataContext context = DataManager.getInstance().getDataContextFromFocus().getResult();
+        if(context != null){
+            context.getData(PlatformDataKeys.PROJECT);
+            Project project = context.getData(PlatformDataKeys.PROJECT);
+            if(project != null){
+                this.projectSettings = LuaProjectSettings.Companion.getInstance(project);
+                sourceRoots.setRoots(projectSettings.getSourceRoot());
+            }
+        }
+        // END Modify by liuyi
         this.settings = LuaSettings.Companion.getInstance();
         constructorNames.setText(settings.getConstructorNamesString());
         strictDoc.setSelected(settings.isStrictDoc());
@@ -71,6 +98,9 @@ public class LuaSettingsPanel implements SearchableConfigurable, Configurable.No
         recognizeGlobalNameAsCheckBox.setSelected(settings.isRecognizeGlobalNameAsType());
         additionalRoots.setRoots(settings.getAdditionalSourcesRoot());
         enableGenericCheckBox.setSelected(settings.getEnableGeneric());
+        // START Modify by liuyi
+        enableStringIntelliSense.setSelected(settings.getEnableStringIntelliSense());
+        // END Modify by liuyi
         requireFunctionNames.setText(settings.getRequireLikeFunctionNamesString());
         tooLargerFileThreshold.setDocument(new IntegerDocument());
         tooLargerFileThreshold.setText(String.valueOf(settings.getTooLargerFileThreshold()));
@@ -119,11 +149,17 @@ public class LuaSettingsPanel implements SearchableConfigurable, Configurable.No
                 settings.isNilStrict() != nilStrict.isSelected() ||
                 settings.isRecognizeGlobalNameAsType() != recognizeGlobalNameAsCheckBox.isSelected() ||
                 settings.getEnableGeneric() != enableGenericCheckBox.isSelected() ||
+                // START Modify by liuyi
+                settings.getEnableStringIntelliSense() != enableStringIntelliSense.isSelected() ||
+                // END Modify by liuyi
                 settings.getAttachDebugCaptureOutput() != captureOutputDebugString.isSelected() ||
                 settings.getAttachDebugCaptureStd() != captureStd.isSelected() ||
                 settings.getAttachDebugDefaultCharsetName() != defaultCharset.getSelectedItem() ||
                 settings.getLanguageLevel() != languageLevel.getSelectedItem() ||
-                !Arrays.equals(settings.getAdditionalSourcesRoot(), additionalRoots.getRoots(), String::compareTo);
+                !Arrays.equals(settings.getAdditionalSourcesRoot(), additionalRoots.getRoots(), String::compareTo) ||
+                // START Modify by liuyi
+                (projectSettings != null && !Arrays.equals(projectSettings.getSourceRoot(), sourceRoots.getRoots(), String::compareTo));
+                // END Modify by liuyi
     }
 
     @Override
@@ -141,6 +177,9 @@ public class LuaSettingsPanel implements SearchableConfigurable, Configurable.No
         settings.setRecognizeGlobalNameAsType(recognizeGlobalNameAsCheckBox.isSelected());
         settings.setAdditionalSourcesRoot(additionalRoots.getRoots());
         settings.setEnableGeneric(enableGenericCheckBox.isSelected());
+        // START Modify by liuyi
+        settings.setEnableStringIntelliSense(enableStringIntelliSense.isSelected());
+        // END Modify by liuyi
         settings.setAttachDebugCaptureOutput(captureOutputDebugString.isSelected());
         settings.setAttachDebugCaptureStd(captureStd.isSelected());
         settings.setAttachDebugDefaultCharsetName((String) Objects.requireNonNull(defaultCharset.getSelectedItem()));
@@ -155,6 +194,11 @@ public class LuaSettingsPanel implements SearchableConfigurable, Configurable.No
                 DaemonCodeAnalyzer.getInstance(project).restart();
             }
         }
+        // START Modify by liuyi
+        if(projectSettings != null){
+            projectSettings.setSourceRoot(sourceRoots.getRoots());
+        }
+        // END Modify by liuyi
     }
 
     private int getTooLargerFileThreshold() {
