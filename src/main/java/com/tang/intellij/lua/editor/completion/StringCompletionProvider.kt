@@ -31,7 +31,7 @@ class StringCompletionProvider : ClassMemberCompletionProvider() {
         val prefixMatcher = completionResultSet.prefixMatcher
         val luaCommentList = PsiTreeUtil.getChildrenOfTypeAsList(position.containingFile, LuaComment::class.java)
         for(comment in luaCommentList){
-            if(comment.children[0] is LuaDocTagSeeImpl){
+            if(comment.children.size > 0 && comment.children[0] is LuaDocTagSeeImpl){
                 val seeRefTag = comment.children[0] as LuaDocTagSee
                 val classType = seeRefTag.classNameRef?.resolveType() as? ITyClass
                 val ctx = SearchContext.get(seeRefTag.project)
