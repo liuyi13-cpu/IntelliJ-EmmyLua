@@ -19,6 +19,7 @@ import org.apache.tools.ant.taskdefs.condition.Os
 import org.jetbrains.intellij.platform.gradle.tasks.PrepareSandboxTask
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import java.io.ByteArrayOutputStream
+import org.jetbrains.intellij.platform.gradle.TestFrameworkType
 
 plugins {
     id("org.jetbrains.intellij.platform") version "2.7.0"
@@ -166,7 +167,14 @@ project(":") {
         intellijPlatform {
             intellijIdeaCommunity(buildVersionData.ideaSDKShortVersion)
             bundledModule("intellij.spellchecker")
+            // START Modify by liuyi
+            // 添加测试框架依赖，Platform 即轻量测试平台
+            testFramework(TestFrameworkType.Platform)
+            // END Modify by liuyi
         }
+        // START Modify by liuyi
+        testImplementation("junit:junit:4.13.2")
+        // END Modify by liuyi
     }
 
     sourceSets {
@@ -187,22 +195,40 @@ project(":") {
         sandboxContainer.set(layout.buildDirectory.dir("${buildVersionData.ideaSDKShortVersion}/idea-sandbox"))
     }
 
-    task("bunch") {
-        doLast {
-            val rev = getRev()
-            // START Modify by liuyi 去掉git操作
-            // switch
-            exec {
-                executable = if (isWin) "bunch/bin/bunch.bat" else "bunch/bin/bunch"
-                args("switch", ".", buildVersionData.bunch)
-            }
-            // END Modify by liuyi 去掉git操作
-        }
-    }
+// START Modify by liuyi 去掉替换版本文件流程
+//    task("bunch") {
+//        doLast {
+//            val rev = getRev()
+//            // reset
+//            exec {
+//                executable = "git"
+//                args("reset", "HEAD", "--hard")
+//            }
+//            // clean untracked files
+//            exec {
+//                executable = "git"
+//                args("clean", "-d", "-f")
+//            }
+//            // switch
+//            exec {
+//                executable = if (isWin) "bunch/bin/bunch.bat" else "bunch/bin/bunch"
+//                args("switch", ".", buildVersionData.bunch)
+//            }
+//            // reset to HEAD
+//            exec {
+//                executable = "git"
+//                args("reset", rev)
+//            }
+//        }
+//    }
+// END Modify by liuyi
 
     tasks {
         buildPlugin {
-            dependsOn("bunch", "installEmmyDebugger")
+            // START Modify by liuyi 去掉替换版本文件流程
+            // dependsOn("bunch", "installEmmyDebugger")
+            dependsOn("installEmmyDebugger")
+            // END Modify by liuyi
             archiveBaseName.set(buildVersionData.archiveName)
             from(fileTree(resDir) { include("!!DONT_UNZIP_ME!!.txt") }) {
                 into("/${project.name}")
