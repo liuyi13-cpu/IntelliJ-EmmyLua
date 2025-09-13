@@ -26,36 +26,87 @@ import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.xdebugger.XSourcePosition
 import com.intellij.xdebugger.evaluation.XDebuggerEvaluator
 import com.tang.intellij.lua.psi.*
+// START Modify by liuyi
+import com.intellij.openapi.application.ApplicationManager
+import com.intellij.psi.PsiFile
+// END Modify by liuyi
 
 /**
  *
  * Created by tangzx on 2017/5/1.
  */
 abstract class LuaDebuggerEvaluator : XDebuggerEvaluator() {
+     // START Modify by liuyi
+//    override fun getExpressionRangeAtOffset(project: Project, document: Document, offset: Int, sideEffectsAllowed: Boolean): TextRange? {
+//        var currentRange: TextRange? = null
+//        PsiDocumentManager.getInstance(project).commitAndRunReadAction {
+//            try {
+//                val file = PsiDocumentManager.getInstance(project).getPsiFile(document) ?: return@commitAndRunReadAction
+//                if (currentRange == null) {
+//                    val ele = file.findElementAt(offset)
+//                    if (ele != null && ele.node.elementType == LuaTypes.ID) {
+//                        val parent = ele.parent
+//                        when (parent) {
+//                            is LuaFuncDef,
+//                            is LuaLocalFuncDef -> currentRange = ele.textRange
+//                            is LuaClassMethodName,
+//                            is PsiNameIdentifierOwner -> currentRange = parent.textRange
+//                        }
+//                    }
+//                }
+//
+//                if (currentRange == null) {
+//                    val expr = PsiTreeUtil.findElementOfClassAtOffset(file, offset, LuaExpr::class.java, false)
+//                    currentRange = when (expr) {
+//                        is LuaCallExpr,
+//                        is LuaClosureExpr,
+//                        is LuaLiteralExpr -> null
+//                        else -> expr?.textRange
+//                    }
+//                }
+//            } catch (ignored: IndexNotReadyException) {
+//            }
+//        }
+//        return currentRange
+//    }
     override fun getExpressionRangeAtOffset(project: Project, document: Document, offset: Int, sideEffectsAllowed: Boolean): TextRange? {
         var currentRange: TextRange? = null
-        PsiDocumentManager.getInstance(project).commitAndRunReadAction {
+        var psiFile: PsiFile? = null
+        var psiManager = PsiDocumentManager.getInstance(project)
+
+        // 判断当前线程是否已经在 ReadAction
+        if (ApplicationManager.getApplication().isReadAccessAllowed) {
+            // 已经在 ReadAction，不能再用 commitAndRunReadAction
+            if (!psiManager.isCommitted(document)) {
+                psiManager.commitDocument(document) // 只 commit，不加 ReadAction
+            }
+            psiFile = psiManager.getPsiFile(document)
+        } else {
+            // 未在 ReadAction，可以安全使用 commitAndRunReadAction
+            psiManager.commitAndRunReadAction {
+                psiFile = psiManager.getPsiFile(document)
+            }
+        }
+
+        if (psiFile != null) {
             try {
-                val file = PsiDocumentManager.getInstance(project).getPsiFile(document) ?: return@commitAndRunReadAction
-                if (currentRange == null) {
-                    val ele = file.findElementAt(offset)
-                    if (ele != null && ele.node.elementType == LuaTypes.ID) {
-                        val parent = ele.parent
-                        when (parent) {
-                            is LuaFuncDef,
-                            is LuaLocalFuncDef -> currentRange = ele.textRange
-                            is LuaClassMethodName,
-                            is PsiNameIdentifierOwner -> currentRange = parent.textRange
-                        }
+                val ele = psiFile!!.findElementAt(offset)
+                if (ele != null && ele.node.elementType == LuaTypes.ID) {
+                    when (val parent = ele.parent) {
+                        is LuaFuncDef,
+                        is LuaLocalFuncDef -> currentRange = ele.textRange
+
+                        is LuaClassMethodName,
+                        is PsiNameIdentifierOwner -> currentRange = parent.textRange
                     }
                 }
-
                 if (currentRange == null) {
-                    val expr = PsiTreeUtil.findElementOfClassAtOffset(file, offset, LuaExpr::class.java, false)
+                    val expr = PsiTreeUtil.findElementOfClassAtOffset(psiFile!!, offset, LuaExpr::class.java, false)
                     currentRange = when (expr) {
                         is LuaCallExpr,
                         is LuaClosureExpr,
                         is LuaLiteralExpr -> null
+
                         else -> expr?.textRange
                     }
                 }
@@ -64,6 +115,7 @@ abstract class LuaDebuggerEvaluator : XDebuggerEvaluator() {
         }
         return currentRange
     }
+    // END Modify by liuyi
 
     override fun evaluate(express: String, xEvaluationCallback: XDebuggerEvaluator.XEvaluationCallback, xSourcePosition: XSourcePosition?) {
         var expr = express.trim()
