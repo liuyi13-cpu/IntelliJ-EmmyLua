@@ -204,11 +204,14 @@ private fun LuaCallExpr.infer(context: SearchContext): ITy {
                 if(ty != Ty.UNKNOWN){
                     return ty
                 }else{
-                    val assignStats = PsiTreeUtil.getChildrenOfTypeAsList(file, LuaAssignStatImpl::class.java)
-                    if (assignStats.size == 1 && assignStats[0].text.contains("DefineClass")){
+                    val members = mutableListOf<LuaClassMember>()
+
+                    // 获取全局变量
+                    val assignStats = PsiTreeUtil.getChildrenOfTypeAsList(file, LuaAssignStat::class.java)
+                    if (assignStats.size == 1 && assignStats[0].text.contains("DefineClass")) {
+                        // 如果有 DefineClass 则返回这个Class类
                         return assignStats[0].varExprList.exprList[0].guessType(context)
-                    }else{
-                        val members = mutableListOf<LuaClassMember>()
+                    } else {
                         for (assignStat in assignStats){
                             for (varExpr in assignStat.varExprList.exprList){
                                 if(varExpr is LuaNameExpr){
@@ -216,9 +219,14 @@ private fun LuaCallExpr.infer(context: SearchContext): ITy {
                                 }
                             }
                         }
-                        if(members.size > 0){
-                            return TyModuleClass(file.uid,file.uid,null,members)
-                        }
+                    }
+                    // 获取全局函数
+                    val classMembers = PsiTreeUtil.getChildrenOfTypeAsList(file, LuaClassMember::class.java)
+                    members.addAll(classMembers)
+
+                    // 返回一个module类
+                    if(members.size > 0){
+                        return TyModuleClass(file.uid,file.uid,null,members)
                     }
                 }
             }
