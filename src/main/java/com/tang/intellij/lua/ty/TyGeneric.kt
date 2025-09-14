@@ -21,17 +21,24 @@ import com.intellij.psi.stubs.StubOutputStream
 import com.intellij.util.io.StringRef
 import com.tang.intellij.lua.comment.psi.LuaDocGenericTy
 import com.tang.intellij.lua.comment.psi.LuaDocTy
+import com.tang.intellij.lua.ext.deserializeList
+import com.tang.intellij.lua.ext.serializeList
 import com.tang.intellij.lua.psi.LuaClassMember
 import com.tang.intellij.lua.search.SearchContext
 
-class TyParameter(val name:String, base: String? = null) : TySerializedClass(name, name, base) {
+// START Modify by liuyi
+class TyParameter(val name:String, base: MutableList<String>? = null) : TySerializedClass(name, name, base) {
 
     override val kind: TyKind
         get() = TyKind.GenericParam
 
     override fun processMembers(context: SearchContext, processor: (ITyClass, LuaClassMember) -> Unit, deep: Boolean) {
-        val superType = getSuperClass(context) as? ITyClass ?: return
-        superType.processMembers(context, processor, deep)
+        val superTypes = getSuperClass(context)
+        if (superTypes != null) {
+            for (superType in superTypes) {
+                superType.processMembers(context, processor, deep)
+            }
+        }
     }
 
     override fun doLazyInit(searchContext: SearchContext) {}
@@ -40,13 +47,13 @@ class TyParameter(val name:String, base: String? = null) : TySerializedClass(nam
 object TyGenericParamSerializer : TySerializer<TyParameter>() {
     override fun deserializeTy(flags: Int, stream: StubInputStream): TyParameter {
         val name = StringRef.toString(stream.readName())
-        val base = StringRef.toString(stream.readName())
-        return TyParameter(name, base)
+        var list = deserializeList(stream)
+        return TyParameter(name, list)
     }
 
     override fun serializeTy(ty: TyParameter, stream: StubOutputStream) {
         stream.writeName(ty.name)
-        stream.writeName(ty.superClassName)
+        serializeList(stream, ty.superClassName)
     }
 }
 

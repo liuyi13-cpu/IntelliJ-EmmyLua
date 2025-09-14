@@ -12,11 +12,16 @@ import com.intellij.extapi.psi.StubBasedPsiElementBase;
 import com.tang.intellij.lua.stubs.LuaDocTableDefStub;
 import com.tang.intellij.lua.comment.psi.*;
 import com.intellij.psi.stubs.IStubElementType;
+import org.jetbrains.annotations.ApiStatus.Experimental;
 import com.intellij.psi.tree.IElementType;
 
 public class LuaDocTableDefImpl extends StubBasedPsiElementBase<LuaDocTableDefStub> implements LuaDocTableDef {
 
   public LuaDocTableDefImpl(@NotNull LuaDocTableDefStub stub, @NotNull IStubElementType<?, ?> type) {
+    super(stub, type);
+  }
+
+  public LuaDocTableDefImpl(@NotNull LuaDocTableDefStub stub, @NotNull IElementType type) {
     super(stub, type);
   }
 

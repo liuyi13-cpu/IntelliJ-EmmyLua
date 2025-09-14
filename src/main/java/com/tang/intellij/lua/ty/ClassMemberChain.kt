@@ -18,13 +18,16 @@ package com.tang.intellij.lua.ty
 
 import com.tang.intellij.lua.psi.LuaClassMember
 
-class ClassMemberChain(val ty: ITyClass, var superChain: ClassMemberChain?) {
+// START Modify by liuyi
+class ClassMemberChain(val ty: ITyClass) {
     private val members = mutableMapOf<String, LuaClassMember>()
+    var superChains: MutableList<ClassMemberChain> = mutableListOf()
 
     fun add(member: LuaClassMember) {
         val name = member.name ?: return
-        val superExist = superChain?.findMember(name)
-        val override = superExist == null || canOverride(member, superExist)
+
+        // 检查所有父类链中是否存在同名成员
+        val override = canOverrideAnySuperMember(name, member)
         if (override) {
             val selfExist = members[name]
             if (selfExist == null || member.worth > selfExist.worth)
@@ -32,16 +35,52 @@ class ClassMemberChain(val ty: ITyClass, var superChain: ClassMemberChain?) {
         }
     }
 
+    private fun canOverrideAnySuperMember(name: String, member: LuaClassMember): Boolean {
+        // 如果没有父类链，可以直接添加
+        if (superChains.isEmpty()) {
+            return true
+        }
+
+        // 检查是否可以覆盖任何一个父类链中的同名成员
+        // 只有当可以覆盖至少一个父类链中的同名成员时，才添加当前成员
+        var canOverride = false
+
+        for (superChain in superChains) {
+            val superMember = superChain.findMember(name)
+            if (superMember == null || canOverride(member, superMember)) {
+                canOverride = true
+                break
+            }
+        }
+
+        return canOverride
+    }
+
     fun findMember(name: String): LuaClassMember? {
-        return members.getOrElse(name) { superChain?.findMember(name) }
+        // 先查找当前类的成员
+        val member = members[name]
+        if (member != null) {
+            return member
+        }
+        // 然后在所有父类链中查找
+        for (superChain in superChains) {
+            val superMember = superChain.findMember(name)
+            if (superMember != null) {
+                return superMember
+            }
+        }
+        return null
     }
 
     private fun process(deep: Boolean, processor: (ITyClass, String, LuaClassMember) -> Unit) {
         for ((t, u) in members) {
             processor(ty, t, u)
         }
-        if (deep)
-            superChain?.process(deep, processor)
+        if (deep) {
+            for (superChain in superChains) {
+                superChain.process(deep, processor)
+            }
+        }
     }
 
     fun process(deep: Boolean, processor: (ITyClass, LuaClassMember) -> Unit) {

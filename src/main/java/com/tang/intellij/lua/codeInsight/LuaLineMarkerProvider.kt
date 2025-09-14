@@ -39,6 +39,7 @@ import com.tang.intellij.lua.psi.search.LuaClassInheritorsSearch
 import com.tang.intellij.lua.psi.search.LuaOverridingMethodsSearch
 import com.tang.intellij.lua.psi.search.LuaShortNamesManager
 import com.tang.intellij.lua.search.SearchContext
+import com.tang.intellij.lua.ty.ITyClass
 import com.tang.intellij.lua.ty.TyClass
 
 /**
@@ -63,18 +64,36 @@ class LuaLineMarkerProvider : AbstractLineMarkerProvider() {
                 val methodName = methodDef.name!!
                 var superType = type.getSuperClass(context)
 
-                while (superType != null && superType is TyClass) {
-                    ProgressManager.checkCanceled()
-                    val superTypeName = superType.className
-                    val superMethod = LuaShortNamesManager.getInstance(project).findMethod(superTypeName, methodName, context)
-                    if (superMethod != null) {
-                        val builder = NavigationGutterIconBuilder.create(AllIcons.Gutter.OverridingMethod)
-                                .setTargets(superMethod)
-                                .setTooltipText("Overrides function in $superTypeName")
-                        result.add(builder.createLineMarkerInfo(classMethodNameId))
-                        break
+                // START Modify by liuyi
+                if (superType != null) {
+                    val processedTypes = mutableSetOf<ITyClass>()
+                    val toProcess = mutableListOf<ITyClass>()
+                    toProcess.addAll(superType)
+
+                    while (toProcess.isNotEmpty()) {
+                        val current = toProcess.removeAt(0)
+                        if (current in processedTypes) continue
+                        processedTypes.add(current)
+
+                        if (current is TyClass) {
+                            ProgressManager.checkCanceled()
+                            val superTypeName = current.className
+                            val superMethod = LuaShortNamesManager.getInstance(project).findMethod(superTypeName, methodName, context)
+                            if (superMethod != null) {
+                                val builder = NavigationGutterIconBuilder.create(AllIcons.Gutter.OverridingMethod)
+                                    .setTargets(superMethod)
+                                    .setTooltipText("Overrides function in $superTypeName")
+                                result.add(builder.createLineMarkerInfo(classMethodNameId))
+                                break
+                            }
+
+                            // 添加当前类的父类
+                            superType = current.getSuperClass(context)
+                            if (superType != null) {
+                                toProcess.addAll(superType)
+                            }
+                        }
                     }
-                    superType = superType.getSuperClass(context)
                 }
             }
 

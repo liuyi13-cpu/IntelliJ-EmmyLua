@@ -19,6 +19,8 @@ package com.tang.intellij.lua.stubs
 import com.intellij.psi.stubs.StubInputStream
 import com.intellij.psi.stubs.StubOutputStream
 import com.intellij.util.io.StringRef
+import com.tang.intellij.lua.ext.deserializeList
+import com.tang.intellij.lua.ext.serializeList
 import com.tang.intellij.lua.psi.LuaParamInfo
 import com.tang.intellij.lua.ty.*
 
@@ -79,11 +81,12 @@ fun StubInputStream.readNames(): Array<String> {
     return list.toTypedArray()
 }
 
+// START Modify by liuyi
 fun StubOutputStream.writeTyParams(tyParams: Array<TyParameter>) {
     writeByte(tyParams.size)
     tyParams.forEach { parameter ->
         writeName(parameter.name)
-        writeName(parameter.superClassName)
+        serializeList(this, parameter.superClassName)
     }
 }
 
@@ -92,7 +95,7 @@ fun StubInputStream.readTyParams(): Array<TyParameter> {
     val size = readByte()
     for (i in 0 until size) {
         val name = StringRef.toString(readName())
-        val base = StringRef.toString(readName())
+        val base = deserializeList(this)
         list.add(TyParameter(name, base))
     }
     return list.toTypedArray()

@@ -13,11 +13,16 @@ import com.tang.intellij.lua.stubs.LuaDocTagTypeStub;
 import com.tang.intellij.lua.comment.psi.*;
 import com.tang.intellij.lua.ty.ITy;
 import com.intellij.psi.stubs.IStubElementType;
+import org.jetbrains.annotations.ApiStatus.Experimental;
 import com.intellij.psi.tree.IElementType;
 
 public class LuaDocTagTypeImpl extends StubBasedPsiElementBase<LuaDocTagTypeStub> implements LuaDocTagType {
 
   public LuaDocTagTypeImpl(@NotNull LuaDocTagTypeStub stub, @NotNull IStubElementType<?, ?> type) {
+    super(stub, type);
+  }
+
+  public LuaDocTagTypeImpl(@NotNull LuaDocTagTypeStub stub, @NotNull IElementType type) {
     super(stub, type);
   }
 
@@ -52,8 +57,7 @@ public class LuaDocTagTypeImpl extends StubBasedPsiElementBase<LuaDocTagTypeStub
   }
 
   @Override
-  @NotNull
-  public ITy getType() {
+  public @NotNull ITy getType() {
     return LuaDocPsiImplUtilKt.getType(this);
   }
 

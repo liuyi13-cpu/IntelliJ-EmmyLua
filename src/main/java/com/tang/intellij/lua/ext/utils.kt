@@ -21,7 +21,10 @@ import com.intellij.openapi.util.Computable
 import com.intellij.openapi.util.RecursionManager
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
+import com.intellij.psi.stubs.StubInputStream
+import com.intellij.psi.stubs.StubOutputStream
 import com.intellij.util.indexing.FileBasedIndex
+import com.intellij.util.io.StringRef
 
 fun <T> recursionGuard(key: Any, block: Computable<T>, memoize: Boolean = true): T? =
     RecursionManager.doPreventingRecursion(key, memoize, block)
@@ -34,4 +37,29 @@ val PsiElement.stubOrPsiParent get(): PsiElement {
         if (psi != null) return psi
     }
     return parent
+}
+
+// START Modify by liuyi
+fun deserializeList(stream: StubInputStream): MutableList<String>  {
+    var list = mutableListOf<String>()
+    var size = stream.read()
+    if (size > 0) {
+        for (i in 0 until size) {
+            val base = StringRef.toString(stream.readName())
+            list.add(base)
+        }
+    }
+    return list
+}
+
+fun serializeList(stream: StubOutputStream, list: MutableList<String>?) {
+    if (list != null) {
+        var size = list?.size ?: 0
+        stream.write(size)
+        for (superClass in list!!) {
+            stream.writeName(superClass)
+        }
+    } else {
+        stream.write(0)
+    }
 }

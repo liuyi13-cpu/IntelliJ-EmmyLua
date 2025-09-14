@@ -10,16 +10,15 @@ import com.intellij.psi.util.PsiTreeUtil;
 import static com.tang.intellij.lua.comment.psi.LuaDocTypes.*;
 import com.intellij.extapi.psi.ASTWrapperPsiElement;
 import com.tang.intellij.lua.comment.psi.*;
-import com.intellij.psi.PsiReference;
 
-public class LuaDocParamNameRefImpl extends ASTWrapperPsiElement implements LuaDocParamNameRef {
+public class LuaDocClassNameRefListImpl extends ASTWrapperPsiElement implements LuaDocClassNameRefList {
 
-  public LuaDocParamNameRefImpl(@NotNull ASTNode node) {
+  public LuaDocClassNameRefListImpl(@NotNull ASTNode node) {
     super(node);
   }
 
   public void accept(@NotNull LuaDocVisitor visitor) {
-    visitor.visitParamNameRef(this);
+    visitor.visitClassNameRefList(this);
   }
 
   @Override
@@ -30,13 +29,8 @@ public class LuaDocParamNameRefImpl extends ASTWrapperPsiElement implements LuaD
 
   @Override
   @NotNull
-  public PsiElement getId() {
-    return notNullChild(findChildByType(ID));
-  }
-
-  @Override
-  public @NotNull PsiReference getReference() {
-    return LuaDocPsiImplUtilKt.getReference(this);
+  public List<LuaDocClassNameRef> getClassNameRefList() {
+    return PsiTreeUtil.getChildrenOfTypeAsList(this, LuaDocClassNameRef.class);
   }
 
 }

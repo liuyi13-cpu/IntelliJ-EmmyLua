@@ -160,13 +160,20 @@ class LuaCommentImpl(node: ASTNode) : ASTWrapperPsiElement(node), LuaComment {
         if (!LuaSettings.instance.enableGeneric)
             return null
 
+        // START Modify by liuyi
         val list = findTags(LuaDocGenericDef::class.java)
-        val map = mutableMapOf<String, String>()
+        val map = mutableMapOf<String, MutableList<String>>()
         for (def in list) {
             val name = def.name
             if (name != null) {
                 val base = def.classNameRef?.text
-                if (base != null) map[name] = base
+                if (base != null) {
+                    // 解析的时候支持逗号分割
+                    val supers = base.split(",").map { it.trim() }.filter { it.isNotEmpty() }
+                    if (supers.isNotEmpty()) {
+                        map[name] = supers.toMutableList()
+                    }
+                }
             }
         }
 

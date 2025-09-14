@@ -23,6 +23,8 @@ import com.intellij.psi.stubs.StubOutputStream
 import com.intellij.util.io.StringRef
 import com.tang.intellij.lua.comment.psi.LuaDocTagClass
 import com.tang.intellij.lua.comment.psi.impl.LuaDocTagClassImpl
+import com.tang.intellij.lua.ext.deserializeList
+import com.tang.intellij.lua.ext.serializeList
 import com.tang.intellij.lua.psi.LuaElementType
 import com.tang.intellij.lua.psi.aliasName
 import com.tang.intellij.lua.stubs.index.StubKeys
@@ -39,29 +41,33 @@ class LuaDocTagClassType : LuaStubElementType<LuaDocTagClassStub, LuaDocTagClass
         return LuaDocTagClassImpl(luaDocClassStub, this)
     }
 
+    // START Modify by liuyi
     override fun createStub(luaDocTagClass: LuaDocTagClass, stubElement: StubElement<*>): LuaDocTagClassStub {
-        val superClassNameRef = luaDocTagClass.superClassNameRef
-        val superClassName = superClassNameRef?.text
+        val superClassNameRef = luaDocTagClass.superClassNameRefList?.classNameRefList
         val aliasName: String? = luaDocTagClass.aliasName
 
+        val superClassName = mutableListOf<String>()
+        superClassNameRef?.forEach { ref ->
+            superClassName.add(ref.text)
+        }
         return LuaDocTagClassStubImpl(luaDocTagClass.name, aliasName, superClassName, luaDocTagClass.isDeprecated, stubElement)
     }
 
     override fun serialize(luaDocClassStub: LuaDocTagClassStub, stubOutputStream: StubOutputStream) {
         stubOutputStream.writeName(luaDocClassStub.className)
         stubOutputStream.writeName(luaDocClassStub.aliasName)
-        stubOutputStream.writeName(luaDocClassStub.superClassName)
+        serializeList(stubOutputStream, luaDocClassStub.superClassName)
         stubOutputStream.writeBoolean(luaDocClassStub.isDeprecated)
     }
 
     override fun deserialize(stubInputStream: StubInputStream, stubElement: StubElement<*>): LuaDocTagClassStub {
         val className = stubInputStream.readName()
         val aliasName = stubInputStream.readName()
-        val superClassName = stubInputStream.readName()
+        val superClassName = deserializeList(stubInputStream)
         val isDeprecated = stubInputStream.readBoolean()
         return LuaDocTagClassStubImpl(StringRef.toString(className)!!,
                 StringRef.toString(aliasName),
-                StringRef.toString(superClassName),
+            superClassName,
                 isDeprecated,
                 stubElement)
     }
@@ -73,7 +79,9 @@ class LuaDocTagClassType : LuaStubElementType<LuaDocTagClassStub, LuaDocTagClass
 
         val superClassName = classType.superClassName
         if (superClassName != null) {
-            indexSink.occurrence(StubKeys.SUPER_CLASS, superClassName)
+            for (string in superClassName) {
+                indexSink.occurrence(StubKeys.SUPER_CLASS, string)
+            }
         }
     }
 }
@@ -81,14 +89,14 @@ class LuaDocTagClassType : LuaStubElementType<LuaDocTagClassStub, LuaDocTagClass
 interface LuaDocTagClassStub : StubElement<LuaDocTagClass> {
     val className: String
     val aliasName: String?
-    val superClassName: String?
+    val superClassName: MutableList<String>?
     val classType: TyClass
     val isDeprecated: Boolean
 }
 
 class LuaDocTagClassStubImpl(override val className: String,
                              override val aliasName: String?,
-                             override val superClassName: String?,
+                             override val superClassName: MutableList<String>?,
                              override val isDeprecated: Boolean,
                              parent: StubElement<*>)
     : LuaDocStubBase<LuaDocTagClass>(parent, LuaElementType.CLASS_DEF), LuaDocTagClassStub {

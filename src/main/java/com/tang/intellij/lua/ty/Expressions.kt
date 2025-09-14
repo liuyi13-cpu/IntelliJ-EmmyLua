@@ -29,9 +29,6 @@ import com.tang.intellij.lua.psi.impl.LuaNameExprMixin
 import com.tang.intellij.lua.psi.search.LuaShortNamesManager
 import com.tang.intellij.lua.search.GuardType
 import com.tang.intellij.lua.search.SearchContext
-// START Modify by liuyi
-import com.tang.intellij.lua.psi.impl.LuaAssignStatImpl
-// END Modify by liuyi
 
 fun inferExpr(expr: LuaExpr?, context: SearchContext): ITy {
     if (expr == null)
@@ -142,7 +139,14 @@ fun LuaCallExpr.createSubstitutor(sig: IFunSignature, context: SearchContext): I
         }
         sig.tyParameters.forEach {
             val superCls = it.superClassName
-            if (Ty.isInvalid(map[it.name]) && superCls != null) map[it.name] = Ty.create(superCls)
+            // START Modify by liuyi
+            if (Ty.isInvalid(map[it.name]) && superCls != null && superCls.isNotEmpty()) {
+                // 把所有 super class 转成 Ty
+                val superTy = superCls
+                    .map { name -> Ty.create(name) }
+                    .reduce { acc, ty -> acc.union(ty) } // 合并成一个联合类型
+                map[it.name] = superTy
+            }
         }
         return object : TySubstitutor() {
             override fun substitute(clazz: ITyClass): ITy {

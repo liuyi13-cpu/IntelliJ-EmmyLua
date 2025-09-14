@@ -93,6 +93,41 @@ public class LuaDocParser implements PsiParser, LightPsiParser {
   }
 
   /* ********************************************************** */
+  // class_name_ref (',' class_name_ref)*
+  public static boolean class_name_ref_list(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "class_name_ref_list")) return false;
+    if (!nextTokenIs(b, ID)) return false;
+    boolean r;
+    Marker m = enter_section_(b);
+    r = class_name_ref(b, l + 1);
+    r = r && class_name_ref_list_1(b, l + 1);
+    exit_section_(b, m, CLASS_NAME_REF_LIST, r);
+    return r;
+  }
+
+  // (',' class_name_ref)*
+  private static boolean class_name_ref_list_1(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "class_name_ref_list_1")) return false;
+    while (true) {
+      int c = current_position_(b);
+      if (!class_name_ref_list_1_0(b, l + 1)) break;
+      if (!empty_element_parsed_guard_(b, "class_name_ref_list_1", c)) break;
+    }
+    return true;
+  }
+
+  // ',' class_name_ref
+  private static boolean class_name_ref_list_1_0(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "class_name_ref_list_1_0")) return false;
+    boolean r;
+    Marker m = enter_section_(b);
+    r = consumeToken(b, COMMA);
+    r = r && class_name_ref(b, l + 1);
+    exit_section_(b, m, null, r);
+    return r;
+  }
+
+  /* ********************************************************** */
   // STRING_BEGIN? STRING?
   public static boolean comment_string(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "comment_string")) return false;
@@ -538,7 +573,7 @@ public class LuaDocParser implements PsiParser, LightPsiParser {
   }
 
   /* ********************************************************** */
-  // (TAG_NAME_CLASS|TAG_NAME_MODULE) ID (EXTENDS class_name_ref)? comment_string?
+  // (TAG_NAME_CLASS|TAG_NAME_MODULE) ID (EXTENDS class_name_ref_list)? comment_string?
   public static boolean tag_class(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "tag_class")) return false;
     if (!nextTokenIs(b, "<tag class>", TAG_NAME_CLASS, TAG_NAME_MODULE)) return false;
@@ -562,20 +597,20 @@ public class LuaDocParser implements PsiParser, LightPsiParser {
     return r;
   }
 
-  // (EXTENDS class_name_ref)?
+  // (EXTENDS class_name_ref_list)?
   private static boolean tag_class_2(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "tag_class_2")) return false;
     tag_class_2_0(b, l + 1);
     return true;
   }
 
-  // EXTENDS class_name_ref
+  // EXTENDS class_name_ref_list
   private static boolean tag_class_2_0(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "tag_class_2_0")) return false;
     boolean r;
     Marker m = enter_section_(b);
     r = consumeToken(b, EXTENDS);
-    r = r && class_name_ref(b, l + 1);
+    r = r && class_name_ref_list(b, l + 1);
     exit_section_(b, m, null, r);
     return r;
   }

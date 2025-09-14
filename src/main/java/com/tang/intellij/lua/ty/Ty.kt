@@ -65,7 +65,7 @@ interface ITy : Comparable<ITy> {
 
     fun subTypeOf(other: ITy, context: SearchContext, strict: Boolean): Boolean
 
-    fun getSuperClass(context: SearchContext): ITy?
+    fun getSuperClass(context: SearchContext): MutableList<ITyClass>?
 
     fun visitSuper(searchContext: SearchContext, processor: Processor<ITyClass>)
 
@@ -155,15 +155,20 @@ abstract class Ty(override val kind: TyKind) : ITy {
         // Classes are equal
         return this == other
     }
-
-    override fun getSuperClass(context: SearchContext): ITy? {
+    // START Modify by liuyi
+    override fun getSuperClass(context: SearchContext): MutableList<ITyClass>? {
         return null
     }
 
     override fun visitSuper(searchContext: SearchContext, processor: Processor<ITyClass>) {
-        val superType = getSuperClass(searchContext) as? ITyClass ?: return
-        if (processor.process(superType))
-            superType.visitSuper(searchContext, processor)
+        val superTypes = getSuperClass(searchContext)
+        if (superTypes != null) {
+            for (superType in superTypes) {
+                if (processor.process(superType)) {
+                    superType.visitSuper(searchContext, processor)
+                }
+            }
+        }
     }
 
     override fun compareTo(other: ITy): Int {

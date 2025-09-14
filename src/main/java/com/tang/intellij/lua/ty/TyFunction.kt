@@ -190,9 +190,18 @@ class FunSignature(colonCall: Boolean,
             return list.toTypedArray()
         }
 
+        // START Modify by liuyi
         fun create(colonCall: Boolean, functionTy: LuaDocFunctionTy): IFunSignature {
             val list = mutableListOf<TyParameter>()
-            functionTy.genericDefList.forEach { it.name?.let { name -> list.add(TyParameter(name, it.classNameRef?.text)) } }
+            functionTy.genericDefList.forEach { it.name?.let { name ->
+                val supers = it.classNameRef?.text
+                    ?.split(",")
+                    ?.map { it.trim() }
+                    ?.filter { it.isNotEmpty() }
+                    ?.toMutableList()
+                    ?: mutableListOf()
+                list.add(TyParameter(name, supers)) }
+            }
             return FunSignature(
                     colonCall,
                     functionTy.returnType,

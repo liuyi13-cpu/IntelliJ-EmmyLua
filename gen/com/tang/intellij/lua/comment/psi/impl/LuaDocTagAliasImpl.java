@@ -13,11 +13,16 @@ import com.tang.intellij.lua.stubs.LuaDocTagAliasStub;
 import com.tang.intellij.lua.comment.psi.*;
 import com.tang.intellij.lua.ty.ITy;
 import com.intellij.psi.stubs.IStubElementType;
+import org.jetbrains.annotations.ApiStatus.Experimental;
 import com.intellij.psi.tree.IElementType;
 
 public class LuaDocTagAliasImpl extends StubBasedPsiElementBase<LuaDocTagAliasStub> implements LuaDocTagAlias {
 
   public LuaDocTagAliasImpl(@NotNull LuaDocTagAliasStub stub, @NotNull IStubElementType<?, ?> type) {
+    super(stub, type);
+  }
+
+  public LuaDocTagAliasImpl(@NotNull LuaDocTagAliasStub stub, @NotNull IElementType type) {
     super(stub, type);
   }
 
@@ -52,20 +57,17 @@ public class LuaDocTagAliasImpl extends StubBasedPsiElementBase<LuaDocTagAliasSt
   }
 
   @Override
-  @Nullable
-  public PsiElement getNameIdentifier() {
+  public @Nullable PsiElement getNameIdentifier() {
     return LuaDocPsiImplUtilKt.getNameIdentifier(this);
   }
 
   @Override
-  @NotNull
-  public PsiElement setName(@NotNull String newName) {
+  public @NotNull PsiElement setName(@NotNull String newName) {
     return LuaDocPsiImplUtilKt.setName(this, newName);
   }
 
   @Override
-  @Nullable
-  public String getName() {
+  public @Nullable String getName() {
     return LuaDocPsiImplUtilKt.getName(this);
   }
 
@@ -75,8 +77,7 @@ public class LuaDocTagAliasImpl extends StubBasedPsiElementBase<LuaDocTagAliasSt
   }
 
   @Override
-  @NotNull
-  public ITy getType() {
+  public @NotNull ITy getType() {
     return LuaDocPsiImplUtilKt.getType(this);
   }
 

@@ -15,11 +15,16 @@ import com.tang.intellij.lua.psi.Visibility;
 import com.tang.intellij.lua.search.SearchContext;
 import com.tang.intellij.lua.ty.ITy;
 import com.intellij.psi.stubs.IStubElementType;
+import org.jetbrains.annotations.ApiStatus.Experimental;
 import com.intellij.psi.tree.IElementType;
 
 public class LuaDocTableFieldImpl extends StubBasedPsiElementBase<LuaDocTableFieldStub> implements LuaDocTableField {
 
   public LuaDocTableFieldImpl(@NotNull LuaDocTableFieldStub stub, @NotNull IStubElementType<?, ?> type) {
+    super(stub, type);
+  }
+
+  public LuaDocTableFieldImpl(@NotNull LuaDocTableFieldStub stub, @NotNull IElementType type) {
     super(stub, type);
   }
 
@@ -54,14 +59,12 @@ public class LuaDocTableFieldImpl extends StubBasedPsiElementBase<LuaDocTableFie
   }
 
   @Override
-  @NotNull
-  public ITy guessParentType(@NotNull SearchContext context) {
+  public @NotNull ITy guessParentType(@NotNull SearchContext context) {
     return LuaDocPsiImplUtilKt.guessParentType(this, context);
   }
 
   @Override
-  @NotNull
-  public Visibility getVisibility() {
+  public @NotNull Visibility getVisibility() {
     return LuaDocPsiImplUtilKt.getVisibility(this);
   }
 
@@ -71,26 +74,22 @@ public class LuaDocTableFieldImpl extends StubBasedPsiElementBase<LuaDocTableFie
   }
 
   @Override
-  @NotNull
-  public PsiElement setName(@NotNull String newName) {
+  public @NotNull PsiElement setName(@NotNull String newName) {
     return LuaDocPsiImplUtilKt.setName(this, newName);
   }
 
   @Override
-  @NotNull
-  public String getName() {
+  public @Nullable String getName() {
     return LuaDocPsiImplUtilKt.getName(this);
   }
 
   @Override
-  @Nullable
-  public PsiElement getNameIdentifier() {
+  public @Nullable PsiElement getNameIdentifier() {
     return LuaDocPsiImplUtilKt.getNameIdentifier(this);
   }
 
   @Override
-  @NotNull
-  public ITy guessType(@NotNull SearchContext context) {
+  public @NotNull ITy guessType(@NotNull SearchContext context) {
     return LuaDocPsiImplUtilKt.guessType(this, context);
   }
 

@@ -67,15 +67,33 @@ class FindMethodUsagesHandler(val methodDef: LuaClassMethod) : FindUsagesHandler
         val ctx = SearchContext.get(psiElement.project)
         //base declarations
         val methodName = methodDef.name
-        var parentType = methodDef.guessParentType(ctx) as? ITyClass
-        while (methodName != null && parentType != null) {
-            val superClass = parentType.getSuperClass(ctx) as? ITyClass
-            if (superClass != null) {
-                val superMethod = superClass.findMember(methodName, ctx)
-                if (superMethod != null) arr.add(superMethod)
+        // START Modify by liuyi
+        if (methodName != null)
+        {
+            val processedTypes = mutableSetOf<ITyClass>()
+            val toProcess = mutableListOf<ITyClass>()
+            val parentType = methodDef.guessParentType(ctx) as? ITyClass
+            if (parentType != null) {
+                toProcess.add(parentType)
             }
-            parentType = superClass
+
+            while (toProcess.isNotEmpty()) {
+                val currentType = toProcess.removeAt(0)
+                if (processedTypes.contains(currentType)) continue
+                processedTypes.add(currentType)
+
+                val superClasses = currentType.getSuperClass(ctx)
+                if (superClasses != null) {
+                    for (superClass in superClasses)
+                    {
+                        val superMethod = superClass.findMember(methodName, ctx)
+                        if (superMethod != null) arr.add(superMethod)
+                        toProcess.add(superClass)
+                    }
+                }
+            }
         }
+
         return arr.toTypedArray()
     }
 
