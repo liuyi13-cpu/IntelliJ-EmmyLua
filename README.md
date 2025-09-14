@@ -6,9 +6,9 @@
 ## 新增功能
 - 自定义require函数[DONE]
 - 字符串函数跳转[DONE]
-- requir emodule里全局变量[DONE]
+- XXrequire module里全局变量[DONE]
+- XXrequire module里全局函数[DONE]
 
-- requir emodule里全局函数
 - 多继承
 - slua import() 反射接口
 - 
