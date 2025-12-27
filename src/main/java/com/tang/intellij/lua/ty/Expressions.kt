@@ -207,20 +207,15 @@ private fun LuaCallExpr.infer(context: SearchContext): ITy {
                 val ty = file.guessType(context)
                 if(ty != Ty.UNKNOWN){
                     return ty
-                }else{
+                } else {
                     val members = mutableListOf<LuaClassMember>()
 
                     // 获取全局变量
                     val assignStats = PsiTreeUtil.getChildrenOfTypeAsList(file, LuaAssignStat::class.java) // 赋值语句
-                    if (assignStats.size == 1 && assignStats[0].text.contains("DefineClass")) {
-                        // 1.如果有 DefineClass 则返回这个Class类
-                        return assignStats[0].varExprList.exprList[0].guessType(context)
-                    } else {
-                        for (assignStat in assignStats){
-                            for (varExpr in assignStat.varExprList.exprList){
-                                if(varExpr is LuaNameExpr){
-                                    members.add(varExpr as LuaClassMember)
-                                }
+                    for (assignStat in assignStats){
+                        for (varExpr in assignStat.varExprList.exprList){
+                            if(varExpr is LuaNameExpr){
+                                members.add(varExpr as LuaClassMember)
                             }
                         }
                     }
