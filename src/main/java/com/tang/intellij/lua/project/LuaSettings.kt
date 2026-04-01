@@ -122,7 +122,7 @@ class LuaSettings : PersistentStateComponent<LuaSettings> {
 
         // START Modify by liuyi
         fun isKGRequireLikeFunctionName(name: String): Boolean {
-            return name == Constants.WORD_KG_REQUIRE
+            return name == Constants.WORD_KG_REQUIRE || name == Constants.WORD_REQUIRE_DATA
         }
 
         fun isImportLikeFunctionName(name: String): Boolean {

@@ -24,6 +24,7 @@ import com.intellij.psi.stubs.StubIndex
 import com.intellij.util.Processor
 import com.intellij.util.containers.ContainerUtil
 import com.tang.intellij.lua.comment.psi.LuaDocTagField
+import com.tang.intellij.lua.lang.LuaLanguage
 import com.tang.intellij.lua.psi.LuaClassMember
 import com.tang.intellij.lua.psi.LuaClassMethod
 import com.tang.intellij.lua.psi.LuaTableField
@@ -33,6 +34,10 @@ import com.tang.intellij.lua.ty.TyClass
 import com.tang.intellij.lua.ty.TyParameter
 
 class LuaClassMemberIndex : IntStubIndexExtension<LuaClassMember>() {
+    override fun getVersion(): Int {
+        return LuaLanguage.INDEX_VERSION
+    }
+
     override fun getKey() = StubKeys.CLASS_MEMBER
 
     override fun get(s: Int, project: Project, scope: GlobalSearchScope): Collection<LuaClassMember> =

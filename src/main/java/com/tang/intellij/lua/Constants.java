@@ -39,6 +39,7 @@ public class Constants {
 
     // START Modify by liuyi
     public static final String WORD_KG_REQUIRE = "kg_require";
+    public static final String WORD_REQUIRE_DATA = "require_data";
     public static final String WORD_IMPORT = "import";
     // END Modify by liuyi
 }

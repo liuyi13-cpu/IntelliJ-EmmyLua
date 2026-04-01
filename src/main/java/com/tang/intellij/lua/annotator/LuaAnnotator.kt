@@ -20,6 +20,7 @@ import com.intellij.lang.annotation.AnnotationBuilder
 import com.intellij.lang.annotation.AnnotationHolder
 import com.intellij.lang.annotation.Annotator
 import com.intellij.lang.annotation.HighlightSeverity
+import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.util.Key
 import com.intellij.psi.PsiElement
 import com.tang.intellij.lua.Constants
@@ -147,6 +148,8 @@ class LuaAnnotator : Annotator {
         }
 
         override fun visitNameExpr(o: LuaNameExpr) {
+            if (DumbService.isDumb(o.project)) return
+
             val id = o.firstChild
 
             val res = resolve(o, SearchContext.get(o.project))

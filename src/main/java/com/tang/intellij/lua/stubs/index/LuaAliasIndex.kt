@@ -19,9 +19,14 @@ package com.tang.intellij.lua.stubs.index
 import com.intellij.psi.stubs.StringStubIndexExtension
 import com.intellij.psi.stubs.StubIndexKey
 import com.tang.intellij.lua.comment.psi.LuaDocTagAlias
+import com.tang.intellij.lua.lang.LuaLanguage
 import com.tang.intellij.lua.search.SearchContext
 
 class LuaAliasIndex : StringStubIndexExtension<LuaDocTagAlias>() {
+    override fun getVersion(): Int {
+        return LuaLanguage.INDEX_VERSION
+    }
+
     companion object {
         val instance = LuaAliasIndex()
 

@@ -1,4 +1,7 @@
-# 自定义改动
+# 自定义改动、
+2026.2.25
+- 支持require_data
+
 2025.8.21
 - 新增build.bat直接编译脚本
 - 去掉打包时的git操作
@@ -8,10 +11,8 @@
 - 字符串函数跳转[DONE]
 - XXrequire module里全局变量[DONE]
 - XXrequire module里全局函数[DONE]
-
-- 多继承
+- 多继承[DONE]
 - slua import() 反射接口
-- 
 
 
 ![logo](/snapshot/logo.png)

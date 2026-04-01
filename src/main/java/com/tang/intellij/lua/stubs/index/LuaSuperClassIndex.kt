@@ -23,12 +23,17 @@ import com.intellij.psi.stubs.StubIndex
 import com.intellij.util.Processor
 import com.intellij.util.containers.ContainerUtil
 import com.tang.intellij.lua.comment.psi.LuaDocTagClass
+import com.tang.intellij.lua.lang.LuaLanguage
 
 /**
  *
  * Created by TangZX on 2017/3/29.
  */
 class LuaSuperClassIndex : StringStubIndexExtension<LuaDocTagClass>() {
+    override fun getVersion(): Int {
+        return LuaLanguage.INDEX_VERSION
+    }
+
     override fun getKey() = StubKeys.SUPER_CLASS
 
     companion object {

@@ -37,6 +37,10 @@ class LuaFileElementType : IStubFileElementType<LuaFileStub>(LuaLanguage.INSTANC
         val LOG = Logger.getInstance(LuaFileElementType::class.java)
     }
 
+    override fun getStubVersion(): Int {
+        return LuaLanguage.INDEX_VERSION
+    }
+
     // debug performance
     override fun parseContents(chameleon: ASTNode): ASTNode? {
         val psi = chameleon.psi
